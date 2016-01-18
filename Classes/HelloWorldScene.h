@@ -2,13 +2,14 @@
 #define __HELLOWORLD_SCENE_H__
 
 #include "cocos2d.h"
+#include "Player.hpp"
 
 class HelloWorld : public cocos2d::Layer
 {
 public:
     static cocos2d::Scene* createScene();
 
-    virtual bool init();
+    virtual bool init() override;
     
     // a selector callback
     void menuCloseCallback(cocos2d::Ref* pSender);
@@ -27,6 +28,8 @@ private:
         
 private:
     cocos2d::TMXTiledMap *_tileMap;
+    cocos2d::Vec2 _playableAreaMin, _playableAreaMax;
+    Player *_player;
 };
 
 #endif // __HELLOWORLD_SCENE_H__

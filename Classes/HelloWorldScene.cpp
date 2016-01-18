@@ -27,8 +27,14 @@ bool HelloWorld::init()
         return false;
     }
     
-    _tileMap = TMXTiledMap::create("isometric.tmx");
+    _tileMap = TMXTiledMap::create("isometric-with-border.tmx");
+    
+    auto collisionsLayer = _tileMap->getLayer("Collisions");
+    collisionsLayer->setVisible(false);
+    
     addChild(_tileMap);
+    
+//    _tileMap->setPosition(Vec2 {-500, -500});
     
     auto eventListener = EventListenerTouchOneByOne::create();
     eventListener->onTouchBegan = CC_CALLBACK_2(HelloWorld::onTouchBegan, this);
@@ -36,6 +42,23 @@ bool HelloWorld::init()
     eventListener->onTouchEnded = CC_CALLBACK_2(HelloWorld::onTouchEnded, this);
     eventListener->onTouchCancelled = CC_CALLBACK_2(HelloWorld::onTouchCancelled, this);
     this->getEventDispatcher()->addEventListenerWithSceneGraphPriority(eventListener, this);
+    
+    
+    const int borderSize = 10;
+    _playableAreaMin = Vec2(borderSize, borderSize);
+    _playableAreaMax = Vec2(_tileMap->getMapSize().width - 1 - borderSize,
+                            _tileMap->getMapSize().height - 1 - borderSize);
+    
+    
+    auto screenSize = Director::getInstance()->getWinSize();
+    
+    // Create the player and add it
+    _player = Player::createWithTileMap(_tileMap);
+    _player->setPosition(screenSize.width / 2, screenSize.height / 2);
+    // offset player's texture to best match the tile center position
+    _player->setAnchorPoint(Vec2{0.3f, 0.1f});
+    addChild(_player);
+    
     
     return true;
 }
@@ -57,10 +80,10 @@ Vec2 HelloWorld::tilePosFromLocation(cocos2d::Vec2 location)
     float posY = (int)(inverseTileY - tilePosDiv.x + halfMapWidth);
     
     // make sure coordinates are within isomap bounds
-    posX = MAX(0, posX);
-    posX = MIN(_tileMap->getMapSize().width - 1, posX);
-    posY = MAX(0, posY);
-    posY = MIN(_tileMap->getMapSize().height - 1, posY);
+    posX = MAX(_playableAreaMin.x, posX);
+    posX = MIN(_playableAreaMax.x, posX);
+    posY = MAX(_playableAreaMin.y, posY);
+    posY = MIN(_playableAreaMax.y, posY);
     
     pos = Vec2(posX, posY);
     
@@ -101,6 +124,8 @@ bool HelloWorld::onTouchBegan(cocos2d::Touch *touch, cocos2d::Event *unused_even
     
     auto tilePos = tilePosFromLocation(loc);
     centerTileMapOnTileCoord(tilePos);
+    
+    _player->updateVertexZ(tilePos);
     
     return true;
 }

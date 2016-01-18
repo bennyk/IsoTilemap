@@ -74,7 +74,9 @@ bool AppDelegate::applicationDidFinishLaunching() {
 
     register_all_packages();
     
+    // setup for isometric tiled map
     director->setProjection(Director::Projection::_2D);
+    director->setDepthTest(true);
 
     // create a scene. it's an autorelease object
     auto scene = HelloWorld::createScene();
