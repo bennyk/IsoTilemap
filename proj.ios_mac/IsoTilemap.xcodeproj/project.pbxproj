@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1927CCC71C4CB15A00890126 /* Player.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1927CCC51C4CB15A00890126 /* Player.cpp */; };
 		193229B01C4BCD65007806F9 /* isometric-with-border.tmx in Resources */ = {isa = PBXBuildFile; fileRef = 193229A71C4BCD65007806F9 /* isometric-with-border.tmx */; };
 		193229B11C4BCD65007806F9 /* dg_iso32_objecttiles.png in Resources */ = {isa = PBXBuildFile; fileRef = 193229A81C4BCD65007806F9 /* dg_iso32_objecttiles.png */; };
 		193229B21C4BCD65007806F9 /* isometric.tmx in Resources */ = {isa = PBXBuildFile; fileRef = 193229A91C4BCD65007806F9 /* isometric.tmx */; };
@@ -81,6 +82,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		1927CCC91C4CB15B00890126 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1AC6FAE5180E9839004C840B /* cocos2d_libs.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 507B40FD1C31BDD30067B53E;
+			remoteInfo = "libcocos2d tvOS";
+		};
 		1AC6FAF8180E9839004C840B /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1AC6FAE5180E9839004C840B /* cocos2d_libs.xcodeproj */;
@@ -112,6 +120,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		1927CCC51C4CB15A00890126 /* Player.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Player.cpp; sourceTree = "<group>"; };
+		1927CCC61C4CB15A00890126 /* Player.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Player.hpp; sourceTree = "<group>"; };
 		193229A71C4BCD65007806F9 /* isometric-with-border.tmx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = "isometric-with-border.tmx"; sourceTree = "<group>"; };
 		193229A81C4BCD65007806F9 /* dg_iso32_objecttiles.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = dg_iso32_objecttiles.png; sourceTree = "<group>"; };
 		193229A91C4BCD65007806F9 /* isometric.tmx */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = isometric.tmx; sourceTree = "<group>"; };
@@ -255,6 +265,7 @@
 			children = (
 				1AC6FAF9180E9839004C840B /* libcocos2d Mac.a */,
 				1AC6FB07180E9839004C840B /* libcocos2d iOS.a */,
+				1927CCCA1C4CB15B00890126 /* libcocos2d tvOS.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -328,6 +339,8 @@
 				46880B8519C43A87006E1F66 /* AppDelegate.h */,
 				46880B8619C43A87006E1F66 /* HelloWorldScene.cpp */,
 				46880B8719C43A87006E1F66 /* HelloWorldScene.h */,
+				1927CCC51C4CB15A00890126 /* Player.cpp */,
+				1927CCC61C4CB15A00890126 /* Player.hpp */,
 			);
 			name = Classes;
 			path = ../Classes;
@@ -454,6 +467,13 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		1927CCCA1C4CB15B00890126 /* libcocos2d tvOS.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libcocos2d tvOS.a";
+			remoteRef = 1927CCC91C4CB15B00890126 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		1AC6FAF9180E9839004C840B /* libcocos2d Mac.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -532,6 +552,7 @@
 			files = (
 				46880B8819C43A87006E1F66 /* AppDelegate.cpp in Sources */,
 				46880B8A19C43A87006E1F66 /* HelloWorldScene.cpp in Sources */,
+				1927CCC71C4CB15A00890126 /* Player.cpp in Sources */,
 				503AE10017EB989F00D1A890 /* AppController.mm in Sources */,
 				503AE10217EB989F00D1A890 /* RootViewController.mm in Sources */,
 				503AE10117EB989F00D1A890 /* main.m in Sources */,
@@ -587,7 +608,7 @@
 					"$(SRCROOT)/../cocos2d/cocos/platform/ios/Simulation",
 				);
 				INFOPLIST_FILE = ios/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LIBRARY_SEARCH_PATHS = "";
 				OTHER_LDFLAGS = (
 					"$(_COCOS_LIB_IOS_BEGIN)",
@@ -621,7 +642,7 @@
 					"$(SRCROOT)/../cocos2d/cocos/platform/ios/Simulation",
 				);
 				INFOPLIST_FILE = ios/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LIBRARY_SEARCH_PATHS = "";
 				OTHER_LDFLAGS = (
 					"$(_COCOS_LIB_IOS_BEGIN)",
