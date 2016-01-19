@@ -59,11 +59,56 @@ bool HelloWorld::init()
     _player->setAnchorPoint(Vec2{0.3f, 0.1f});
     addChild(_player);
     
+    // divide the screen into 4 areas
+    _screenCenter = Vec2(screenSize.width / 2, screenSize.height / 2);
+    _upperLeft = Rect(0, _screenCenter.y, _screenCenter.x, _screenCenter.y);
+    _lowerLeft = Rect(0, 0, _screenCenter.x, _screenCenter.y);
+    _upperRight = Rect(_screenCenter.x, _screenCenter.y, _screenCenter.x, _screenCenter.y);
+    _lowerRight = Rect(_screenCenter.x, 0, _screenCenter.x, _screenCenter.y);
+
+    // to move in any of these directions means to add/subtract 1 to/from the current tile coordinate
+    _moveOffsets[MoveDirectionNone] = Vec2::ZERO;
+    _moveOffsets[MoveDirectionUpperLeft] = Vec2(-1, 0);
+    _moveOffsets[MoveDirectionLowerLeft] = Vec2(0, 1);
+    _moveOffsets[MoveDirectionUpperRight] = Vec2(0, -1);
+    _moveOffsets[MoveDirectionLowerRight] = Vec2(1, 0);
     
+    _currentMoveDirection = MoveDirectionNone;
+    
+    scheduleUpdate();
+
     return true;
 }
 
-Vec2 HelloWorld::tilePosFromLocation(cocos2d::Vec2 location)
+bool HelloWorld::isTilePosBlocked(Vec2 tilePos)
+{
+    auto layer = _tileMap->getLayer("Collisions");
+    CC_ASSERT(layer != nullptr);
+    
+    bool isBlocked = false;
+    auto tileGID = layer->getTileGIDAt(tilePos);
+    if (tileGID > 0) {
+        auto tileProperties = _tileMap->getPropertiesForGID(tileGID);
+        CC_ASSERT(tileProperties.getType() != Value::Type::NONE);
+        
+        auto valueMap = tileProperties.asValueMap();
+        auto v = valueMap.find("blocks_movement");
+        isBlocked = v != valueMap.end();
+    }
+    return isBlocked;
+}
+
+Vec2 HelloWorld::ensureTilePosIsWithinBounds(Vec2 tilePos)
+{
+    tilePos.x = MAX(_playableAreaMin.x, tilePos.x);
+    tilePos.x = MIN(_playableAreaMax.x, tilePos.x);
+    tilePos.y = MAX(_playableAreaMin.y, tilePos.y);
+    tilePos.y = MIN(_playableAreaMax.y, tilePos.y);
+    
+    return tilePos;
+}
+
+Vec2 HelloWorld::floatTilePosFromLocation(Vec2 location)
 {
     Vec2 pos = location - _tileMap->getPosition();
     
@@ -78,17 +123,17 @@ Vec2 HelloWorld::tilePosFromLocation(cocos2d::Vec2 location)
     // Cast to int makes sure that result is in whole numbers, tile coordinates will be used as array indices
     float posX = (int)(inverseTileY + tilePosDiv.x - halfMapWidth);
     float posY = (int)(inverseTileY - tilePosDiv.x + halfMapWidth);
+    return Vec2(posX, posY);
+}
+
+Vec2 HelloWorld::tilePosFromLocation(cocos2d::Vec2 location)
+{
+    Vec2 pos = floatTilePosFromLocation(location);
     
-    // make sure coordinates are within isomap bounds
-    posX = MAX(_playableAreaMin.x, posX);
-    posX = MIN(_playableAreaMax.x, posX);
-    posY = MAX(_playableAreaMin.y, posY);
-    posY = MIN(_playableAreaMax.y, posY);
+    // make sure coordinates are within bounds of the playable area, and cast to int
+    pos = ensureTilePosIsWithinBounds(Vec2((int)pos.x, (int)pos.y));
     
-    pos = Vec2(posX, posY);
-    
-    CCLOG("touch at (%.0f, %.0f) is at tileCoord (%i, %i)", location.x, location.y, (int)pos.x, (int)pos.y);
-    //CCLOG(@"\tinverseY: %.2f -- tilePosDiv: (%.2f, %.2f) -- halfMapWidth: %.0f\n", inverseTileY, tilePosDiv.x, tilePosDiv.y, halfMapWidth);
+//    CCLOG("touch at (%.0f, %.0f) is at tileCoord (%i, %i)", location.x, location.y, (int)pos.x, (int)pos.y);
     
     return pos;
 }
@@ -122,11 +167,18 @@ bool HelloWorld::onTouchBegan(cocos2d::Touch *touch, cocos2d::Event *unused_even
     Vec2 touchLocation = touch->getLocationInView();
     auto loc = Director::getInstance()->convertToGL(touchLocation);
     
-    auto tilePos = tilePosFromLocation(loc);
-    centerTileMapOnTileCoord(tilePos);
-    
-    _player->updateVertexZ(tilePos);
-    
+    if (_upperLeft.containsPoint(loc)) {
+        _currentMoveDirection = MoveDirectionUpperLeft;
+    }
+    else if (_lowerLeft.containsPoint(loc)) {
+        _currentMoveDirection = MoveDirectionLowerLeft;
+    }
+    else if (_upperRight.containsPoint(loc)) {
+        _currentMoveDirection = MoveDirectionUpperRight;
+    }
+    else if (_lowerRight.containsPoint(loc)) {
+        _currentMoveDirection = MoveDirectionLowerRight;
+    }
     return true;
 }
 
@@ -136,11 +188,39 @@ void HelloWorld::onTouchMoved(cocos2d::Touch *touch, cocos2d::Event *unused_even
 
 void HelloWorld::onTouchEnded(cocos2d::Touch *touch, cocos2d::Event *unused_event)
 {
+    _currentMoveDirection = MoveDirectionNone;
 }
 
 void HelloWorld::onTouchCancelled(cocos2d::Touch *touch, cocos2d::Event *unused_event)
 {
 
+}
+
+void HelloWorld::update(float delta)
+{
+    // if the tilemap is currently being moved, wait until it's done moving
+    if (_tileMap->getNumberOfRunningActions() == 0) {
+        if (_currentMoveDirection != MoveDirectionNone) {
+            // player is always standing on the tile which is centered on the screen
+            Vec2 tilePos = tilePosFromLocation(_screenCenter);
+            
+            // get the tile coordinate offset for the direction we're moving to
+            CC_ASSERT(_currentMoveDirection < MAX_MoveDirections);
+            Vec2 offset = _moveOffsets[_currentMoveDirection];
+            
+            // offset the tile position and then make sure it's within bounds of the playable area
+            tilePos = Vec2(tilePos.x + offset.x, tilePos.y + offset.y);
+            tilePos = ensureTilePosIsWithinBounds(tilePos);
+            
+            if (!isTilePosBlocked(tilePos)) {
+                centerTileMapOnTileCoord(tilePos);
+            }
+        }
+    }
+    
+    // continuously fix the player's Z position
+    Vec2 tilePos = floatTilePosFromLocation(_screenCenter);
+    _player->updateVertexZ(tilePos);
 }
 
 
